@@ -7,6 +7,12 @@
 #ifndef PCH_H
 #define PCH_H
 
-// add headers that you want to pre-compile here
+#include <windows.h>	/* Used for low level Windows Synchronization methods */
+#include <cstdio>		/* Used for rich efficent printout */
+#include <time.h>       /* Used to measure execution time */
+#include <math.h>		/* Used for basic math functions */
+#include <typeinfo>     /* Used to output ProducerConsumerQueue Implementation name */
+
+#define UINT64 __int64  /* Current 64-bit integer implimentation */
 
 #endif //PCH_H
