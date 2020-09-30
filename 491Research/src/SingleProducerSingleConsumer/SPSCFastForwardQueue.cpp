@@ -1,11 +1,15 @@
 #include "src/pch.h"
 #include "SPSCFastForwardQueue.h"
-#include "src/Utilities/QueueUtilities.cpp"
 
 SPSCFastForwardQueue::SPSCFastForwardQueue(int maxCapacity) {
-    head = tail = 0;
+    if ((maxCapacity & (maxCapacity - 1)) != 0) {
+        throw std::invalid_argument("SPSCFastForwardQueue requires maxCapacity to be a power of two");
+    }
     capacity = maxCapacity;
+    headBitMask = tailBitMask = capacity - 1;
+    head = tail = 0;
     buffer = new UINT64[capacity];
+    // Consider using memset
     for (int i = 0; i < capacity; ++i) {
         buffer[i] = EMPTY_SLOT;
     }
@@ -13,11 +17,10 @@ SPSCFastForwardQueue::SPSCFastForwardQueue(int maxCapacity) {
 
 SPSCFastForwardQueue::~SPSCFastForwardQueue() {
     delete[] buffer;
-    delete[] oversizedCacheLine;
 }
 
 void SPSCFastForwardQueue::push(UINT64 newElement) {
-    int nextSlot = nextBufferElement(tail, capacity);
+    int nextSlot = ((tail + 1) & tailBitMask);
     while (buffer[tail] != EMPTY_SLOT) {
         // Queue is full, wait for an element to be popped
         Sleep(PRODUCER_TIMEOUT_MS);
@@ -33,7 +36,7 @@ UINT64 SPSCFastForwardQueue::pop() {
         Sleep(CONSUMER_TIMEOUT_MS);
     }
     buffer[head] = EMPTY_SLOT;
-    head = nextBufferElement(head, capacity);
+    head = ((head + 1) & headBitMask);
     return currentElement;
 }
 

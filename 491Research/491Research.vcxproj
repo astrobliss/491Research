@@ -164,6 +164,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Utilities\QueueUtilities.cpp" />
+    <ClCompile Include="src\SingleProducerSingleConsumer\SynchronizationVariableConstructQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\SingleProducerSingleConsumer\SPSCLamportCacheOptimizedQueue.h" />
@@ -171,6 +172,7 @@
     <ClInclude Include="src\SingleProducerSingleConsumer\SPSCLamportQueue.h" />
     <ClInclude Include="src\ProducerConsumerQueue.h" />
     <ClInclude Include="src\pch.h" />
+    <ClInclude Include="src\SingleProducerSingleConsumer\SynchronizationVariableConstructQueue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

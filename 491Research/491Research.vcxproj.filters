@@ -33,6 +33,9 @@
     <ClCompile Include="src\SingleProducerSingleConsumer\SPSCLamportCacheOptimizedQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\SingleProducerSingleConsumer\SynchronizationVariableConstructQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\pch.h">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SingleProducerSingleConsumer\SPSCLamportCacheOptimizedQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SingleProducerSingleConsumer\SynchronizationVariableConstructQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

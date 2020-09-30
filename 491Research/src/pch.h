@@ -9,8 +9,9 @@
 
 #include <windows.h>	/* Used for low level Windows Synchronization methods */
 #include <cstdio>		/* Used for rich efficent printout */
-#include <time.h>       /* Used to measure execution time */
 #include <math.h>		/* Used for basic math functions */
+#include <stdexcept>    /* Used for basic exception types */
+#include <time.h>       /* Used to measure execution time */
 #include <typeinfo>     /* Used to output ProducerConsumerQueue Implementation name */
 
 #define UINT64 __int64  /* Current 64-bit integer implimentation */

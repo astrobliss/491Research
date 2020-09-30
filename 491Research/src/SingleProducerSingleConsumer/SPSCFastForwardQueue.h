@@ -7,18 +7,19 @@
 */
 class SPSCFastForwardQueue : public ProducerConsumerQueue {
 private:
-    static const int CONSUMER_TIMEOUT_MS = 50;
-    static const int PRODUCER_TIMEOUT_MS = 50;
+    static const int CONSUMER_TIMEOUT_MS = 1;
+    static const int PRODUCER_TIMEOUT_MS = 1;
     static const UINT64 EMPTY_SLOT = -1;
-    static const int CACHELINE_SIZE_OVERESTIMATE = 1 << 15;
     UINT64* buffer;
-    int* oversizedCacheLine = new int[CACHELINE_SIZE_OVERESTIMATE];
-    int& head = *oversizedCacheLine;
-    int& tail = *(oversizedCacheLine + CACHELINE_SIZE_OVERESTIMATE - 1);
+    int head;
+    int headBitMask;
+    char spacer[128];
+    int tail;
+    int tailBitMask;
     int capacity;
 public:
     /**
-    * Constructs a SPSCLamportQueue ProducerConsumerQueue implimentation with the specified maximum capicity
+    * Constructs a SPSCFastForwardQueue ProducerConsumerQueue implimentation with the specified maximum capicity, must be a power of 2
     * head and tail are now elements on either side of the oversizedCacheLine array to prevent them from being cached together
     */
     SPSCFastForwardQueue(int maxCapacity);

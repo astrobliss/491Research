@@ -1,20 +1,22 @@
 #include "src/pch.h"
 #include "SPSCLamportCacheOptimizedQueue.h"
-#include "src/Utilities/QueueUtilities.cpp"
 
 SPSCLamportCacheOptimizedQueue::SPSCLamportCacheOptimizedQueue(int maxCapacity) {
-    head = tail = 0;
+    if ((maxCapacity & (maxCapacity - 1)) != 0) {
+        throw std::invalid_argument("SPSCFastForwardQueue requires maxCapacity to be a power of two");
+    }
     capacity = maxCapacity;
+    head = tail = 0;
+    headBitMask = tailBitMask = capacity - 1;
     buffer = new UINT64[capacity];
 }
 
 SPSCLamportCacheOptimizedQueue::~SPSCLamportCacheOptimizedQueue() {
     delete[] buffer;
-    delete[] oversizedCacheLine;
 }
 
 void SPSCLamportCacheOptimizedQueue::push(UINT64 newElement) {
-    int nextSlot = nextBufferElement(tail, capacity);
+    int nextSlot = ((tail + 1) & tailBitMask);
     while (nextSlot == head) {
         // Queue is full, wait for an element to be popped
         Sleep(PRODUCER_TIMEOUT_MS);
@@ -29,7 +31,7 @@ UINT64 SPSCLamportCacheOptimizedQueue::pop() {
         Sleep(CONSUMER_TIMEOUT_MS);
     }
     UINT64 currentElement = buffer[head];
-    head = nextBufferElement(head, capacity);
+    head = ((head + 1) & headBitMask);
     return currentElement;
 }
 
