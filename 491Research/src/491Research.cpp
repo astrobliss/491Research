@@ -4,12 +4,23 @@
 #include "SingleProducerSingleConsumer/SPSCFastForwardQueue.h"
 #include "SingleProducerSingleConsumer/SPSCLamportQueue.h"
 #include "SingleProducerSingleConsumer/SPSCLamportCacheOptimizedQueue.h"
+#include "SingleProducerSingleConsumer/MoodyCamelReaderWriterQueue.h"
 #include "SingleProducerSingleConsumer/SynchronizationVariableConstructQueue.h"
+#include "SingleProducerSingleConsumer/CASQueue.h"
+#include "SingleProducerSingleConsumer/CVQueue.h"
+#include "SingleProducerSingleConsumer/SPSCBlockQueue.h"
+#include "SingleProducerSingleConsumer/SemaBlockQueue.h"
+#include "SingleProducerSingleConsumer/SemaEventQueue.h"
+
+#include "MultiProducerMultiConsumer/MSFTConcurrentQueue.h"
+#include "MultiProducerMultiConsumer/SCQueue.h"
+
 #define METRICS_TIMEOUT_MILLISECONDS 2000
 #define REQUIRED_NUMBER_OF_CLI_INPUTS 2
-#define THRESHOLD_TO_SYNCHRONIZE_LOCAL_WORK (1 << 15)
+#define THRESHOLD_TO_SYNCHRONIZE_LOCAL_WORK (1 << 20)
+#define QUEUE_IMPLIMENTATION SCQueue
 // QUEUE DEFINITION HERE
-static ProducerConsumerQueue* queue = new SPSCFastForwardQueue(1<<24);
+static QUEUE_IMPLIMENTATION* queue = new QUEUE_IMPLIMENTATION(1<<15);
 static UINT64 totalElementsPushed = 0;
 static UINT64 totalElementsPopped = 0;
 static HANDLE testStartEvent;
@@ -41,7 +52,9 @@ DWORD __stdcall consumerRoutine(LPVOID unused) {
 	UINT64 currentRecieved;
 	while (true) {
 		currentRecieved = queue->pop();
-		//printf("Expected %lld, Recieved %lld\n", localReceived, currentRecieved);
+		/*if (localReceived != currentRecieved) {
+			printf("Expected %lld, Recieved %lld\n", localReceived, currentRecieved);
+		}/**/
 		++localReceived;
 		if (localReceived > THRESHOLD_TO_SYNCHRONIZE_LOCAL_WORK) {
 			InterlockedAdd64(&totalElementsPopped, localReceived);
@@ -78,11 +91,17 @@ DWORD __stdcall printTestMetrics(LPVOID unused) {
 	}
 }
 
+
 /**
 * Main method, takes two command line inputs NumberOfProducers and NumberOfConsumers both as ints
 * Initalizes and starts a Producer Consumer Test with the specified number of producers and consumers which will run until the process is stopped
 */
 int main(int argc, char** argv) {
+	/*
+	DWORD minimumResolution, currentResolution, maximumResolution;
+	NtQueryTimerResolution(&maximumResolution, &minimumResolution, &currentResolution);
+	NtSetTimerResolution(10000, TRUE, &currentResolution);
+	printf("current resolution: %.2f\nminimum resolution: %.2f\n maximum resolution: %.2f\n", currentResolution/1e4, minimumResolution/1e4, maximumResolution/1e4);/**/
 	// Read Command Line Input: Errors have exit code 1
 	int numberOfProducers, numberOfConsumers;
 	int presentNumberOfCliInputs = argc - 1;
@@ -94,7 +113,7 @@ int main(int argc, char** argv) {
 	numberOfConsumers = strtol(argv[2], NULL, 10);
 
 	// Initalize Test Resources: Errors have exit code 2
-	printf("Initalizing Producer Consumer Test with %d Producers and %d Consumers using the %s Queue Implementation\n", numberOfProducers, numberOfConsumers, typeid(*queue).name());
+	printf("Initalizing Producer Consumer Test with %d Producers and %d Consumers using the %s Queue Implementation\n", numberOfProducers, numberOfConsumers, "queue name");
 	HANDLE* producers = new HANDLE[numberOfProducers];
 	HANDLE* consumers = new HANDLE[numberOfConsumers];
 	HANDLE metricsThread;

@@ -5,12 +5,14 @@
 * Benifits: The Producer and Consumer can both acces the buffer at the same time
 * Downsides: The head and tail integer are likely placed next to eachother in memory which can lead to cache thrashing
 */
-class SPSCLamportQueue : public ProducerConsumerQueue {
+class SPSCLamportQueue {
 private:
-    static const int CONSUMER_TIMEOUT_MS = 1;
-    static const int PRODUCER_TIMEOUT_MS = 1;
+    HANDLE queueFull, queueEmpty;
     UINT64* buffer;
-    int head, tail;
+    int head;
+    char spacer1[128];
+    int tail;
+    char spacer2[128];
     int bufferSizeMask;
     int capacity;
 public:

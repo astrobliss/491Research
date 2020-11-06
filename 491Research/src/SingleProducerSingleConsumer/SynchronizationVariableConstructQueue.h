@@ -5,7 +5,7 @@
 * Benifits: The Producer and Consumer can both acces the buffer at the same time
 * Downsides: The head and tail integer are likely placed next to eachother in memory which can lead to cache thrashing
 */
-class SynchronizationVariableConstructQueue : public ProducerConsumerQueue {
+class SynchronizationVariableConstructQueue {
 private:
     CONDITION_VARIABLE queueEmpty, queueFull;
     bool consumerWaiting, producerWaiting;

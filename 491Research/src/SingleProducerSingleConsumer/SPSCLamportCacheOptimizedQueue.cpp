@@ -17,22 +17,49 @@ SPSCLamportCacheOptimizedQueue::~SPSCLamportCacheOptimizedQueue() {
 
 void SPSCLamportCacheOptimizedQueue::push(UINT64 newElement) {
     int nextSlot = ((tail + 1) & tailBitMask);
-    while (nextSlot == head) {
-        // Queue is full, wait for an element to be popped
-        Sleep(PRODUCER_TIMEOUT_MS);
+    if (nextSlot != head) {
+        buffer[tail] = newElement;
+        tail = nextSlot;
     }
-    buffer[nextSlot] = newElement;
-    tail = nextSlot;
+    else {
+        printf("writer blocked\n");
+        volatile UINT64 volatileNextSlot = ((tail + 1) & tailBitMask);
+        InterlockedExchange(&prodBlocked, 1);
+        while (volatileNextSlot == head);
+        buffer[tail] = newElement;
+        tail = nextSlot;
+        printf("writer freed\n");
+    }
+    if (!consBlocked) {
+        return;
+    }
+    else {
+        InterlockedExchange(&consBlocked, 0);
+    }
 }
 
 UINT64 SPSCLamportCacheOptimizedQueue::pop() {
-    while (head == tail) {
-        // Queue is empty, wait for an element to be pushed
-        Sleep(CONSUMER_TIMEOUT_MS);
+    UINT64 currentElement;
+    if (head != tail) {
+        currentElement = buffer[head];
+        head = ((head + 1) & headBitMask);
     }
-    UINT64 currentElement = buffer[head];
-    head = ((head + 1) & headBitMask);
-    return currentElement;
+    else {
+        printf("reader blocked\n");
+        volatile UINT64 volatileTail = tail;
+        InterlockedExchange(&consBlocked, 1);
+        while (head == volatileTail);
+        currentElement = buffer[head];
+        head = ((head + 1) & headBitMask);
+        printf("reader freed\n");
+    }
+    if (!prodBlocked) {
+        return currentElement;
+    }
+    else {
+        InterlockedExchange(&prodBlocked, 0);
+        return currentElement;
+    }
 }
 
 UINT64 SPSCLamportCacheOptimizedQueue::getCapacity() {

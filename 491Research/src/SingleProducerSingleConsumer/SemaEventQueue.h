@@ -1,16 +1,20 @@
 #pragma once
-#include "ProducerConsumerQueue.h"
+#include "pch.h"
+#define EMPTY -1
+#define FULL 1
+#define NORMAL 0
 /**
 * Single Producer Single Consumer Queue Originally designed by Giacomi Et Al here https://doi.org/10.1145/1345206.1345215
 * Benifits: The head and tail are kept on separate cache lines and the cache lines are not shared between producer and consumer
 * Downsides: A single Queue value must be kept to indicate empty array elements, used here is EMPTY_SLOT as -1
 */
-class SPSCFastForwardQueue {
+class SemaEventQueue {
 private:
-    static const int CONSUMER_TIMEOUT_MS = 0;
-    static const int PRODUCER_TIMEOUT_MS = 0;
     static const UINT64 EMPTY_SLOT = -1;
     UINT64* buffer;
+    HANDLE queueFull, queueEmpty;
+    CRITICAL_SECTION blocked;
+    LONG queueState = -1;
     int head;
     int headBitMask;
     char spacer[128];
@@ -22,9 +26,15 @@ public:
     * Constructs a SPSCFastForwardQueue ProducerConsumerQueue implimentation with the specified maximum capicity, must be a power of 2
     * head and tail are now elements on either side of the oversizedCacheLine array to prevent them from being cached together
     */
-    SPSCFastForwardQueue(int maxCapacity);
-    ~SPSCFastForwardQueue();
+    SemaEventQueue(int maxCapacity);
+    // constructs empty queue
+    SemaEventQueue();
+    ~SemaEventQueue();
     void push(UINT64);
     UINT64 pop();
     UINT64 getCapacity();
+    bool tryPush(UINT64);
+    bool tryPop(UINT64 &output);
+    void prodSync();
+    void consSync();
 };

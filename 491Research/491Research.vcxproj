@@ -90,7 +90,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>src/pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\reginald\source\repos\491Research\491Research;C:\Users\reginald\source\repos\491Research\491Research\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%USERPROFILE%\library\headers;%USERPROFILE%\source\repos\491Research\491Research;%USERPROFILE%\source\repos\491Research\491Research\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,7 +108,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>src/pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\reginald\source\repos\491Research\491Research;C:\Users\reginald\source\repos\491Research\491Research\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%USERPROFILE%\library\headers;%USERPROFILE%\source\repos\491Research\491Research;%USERPROFILE%\source\repos\491Research\491Research\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -126,7 +126,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>src/pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\reginald\source\repos\491Research\491Research;C:\Users\reginald\source\repos\491Research\491Research\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%USERPROFILE%\library\headers;%USERPROFILE%\source\repos\491Research\491Research;%USERPROFILE%\source\repos\491Research\491Research\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -143,7 +143,9 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>src/pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\reginald\source\repos\491Research\491Research;C:\Users\reginald\source\repos\491Research\491Research\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%USERPROFILE%\library\headers;%USERPROFILE%\source\repos\491Research\491Research;%USERPROFILE%\source\repos\491Research\491Research\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,6 +155,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ConcurrentLookupSet.cpp" />
+    <ClCompile Include="src\MultiProducerMultiConsumer\SCQueue.cpp" />
+    <ClCompile Include="src\SingleProducerSingleConsumer\SemaEventQueue.cpp" />
+    <ClCompile Include="src\SingleProducerSingleConsumer\SemaBlockQueue.cpp" />
+    <ClCompile Include="src\SingleProducerSingleConsumer\SPSCBlockQueue.cpp" />
+    <ClCompile Include="src\SingleProducerSingleConsumer\MutexQueue.cpp" />
+    <ClCompile Include="src\SingleProducerSingleConsumer\CVQueue.cpp" />
+    <ClCompile Include="src\SingleProducerSingleConsumer\CASQueue.cpp" />
+    <ClCompile Include="src\SingleProducerSingleConsumer\MoodyCamelReaderWriterQueue.cpp" />
+    <ClCompile Include="src\MultiProducerMultiConsumer\FacebookQueue.cpp" />
+    <ClCompile Include="src\MultiProducerMultiConsumer\MoodyCamelConcurrentQueue.cpp" />
+    <ClCompile Include="src\MultiProducerMultiConsumer\MSFTConcurrentQueue.cpp" />
     <ClCompile Include="src\SingleProducerSingleConsumer\SPSCLamportCacheOptimizedQueue.cpp" />
     <ClCompile Include="src\SingleProducerSingleConsumer\SPSCFastForwardQueue.cpp" />
     <ClCompile Include="src\SingleProducerSingleConsumer\SPSCLamportQueue.cpp" />
@@ -167,6 +181,18 @@
     <ClCompile Include="src\SingleProducerSingleConsumer\SynchronizationVariableConstructQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ConcurrentLookupSet.h" />
+    <ClInclude Include="src\MultiProducerMultiConsumer\SCQueue.h" />
+    <ClInclude Include="src\SingleProducerSingleConsumer\SemaEventQueue.h" />
+    <ClInclude Include="src\SingleProducerSingleConsumer\SemaBlockQueue.h" />
+    <ClInclude Include="src\SingleProducerSingleConsumer\SPSCBlockQueue.h" />
+    <ClInclude Include="src\SingleProducerSingleConsumer\MutexQueue.h" />
+    <ClInclude Include="src\SingleProducerSingleConsumer\CVQueue.h" />
+    <ClInclude Include="src\SingleProducerSingleConsumer\CASQueue.h" />
+    <ClInclude Include="src\SingleProducerSingleConsumer\MoodyCamelReaderWriterQueue.h" />
+    <ClInclude Include="src\MultiProducerMultiConsumer\FacebookQueue.h" />
+    <ClInclude Include="src\MultiProducerMultiConsumer\MoodyCamelConcurrentQueue.h" />
+    <ClInclude Include="src\MultiProducerMultiConsumer\MSFTConcurrentQueue.h" />
     <ClInclude Include="src\SingleProducerSingleConsumer\SPSCLamportCacheOptimizedQueue.h" />
     <ClInclude Include="src\SingleProducerSingleConsumer\SPSCFastForwardQueue.h" />
     <ClInclude Include="src\SingleProducerSingleConsumer\SPSCLamportQueue.h" />

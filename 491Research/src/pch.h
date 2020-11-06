@@ -7,12 +7,19 @@
 #ifndef PCH_H
 #define PCH_H
 
-#include <windows.h>	/* Used for low level Windows Synchronization methods */
+
 #include <cstdio>		/* Used for rich efficent printout */
 #include <math.h>		/* Used for basic math functions */
 #include <stdexcept>    /* Used for basic exception types */
 #include <time.h>       /* Used to measure execution time */
-#include <typeinfo>     /* Used to output ProducerConsumerQueue Implementation name */
+#include <concurrent_queue.h> /* Windows MPMC Queue */
+#include <concurrent_vector.h> /* Windows Concurrent Vector*/
+#include "folly/MPMCQueue.h" /* Facebook MPMC Queue */
+#include "MoodyCamel/blockingconcurrentqueue.h" /* MoodyCamel MPMC Queue */
+#include "MoodyCamel/readerwriterqueue.h" /* MoodyCamel SPSC Queue */
+#pragma comment(lib, "ntdll.lib")
+extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
+extern "C" NTSYSAPI NTSTATUS NTAPI NtQueryTimerResolution(PULONG MinimumResolution, PULONG MaximumResolution, PULONG CurrentResolution);
 
 #define UINT64 __int64  /* Current 64-bit integer implimentation */
 
