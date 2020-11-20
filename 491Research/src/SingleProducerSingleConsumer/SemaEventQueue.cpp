@@ -18,6 +18,8 @@ SemaEventQueue::SemaEventQueue(int maxCapacity) {
 
 SemaEventQueue::~SemaEventQueue() {
     delete[] buffer;
+    CloseHandle(queueFull);
+    CloseHandle(queueEmpty);
 }
 
 void SemaEventQueue::push(UINT64 newElement) {
@@ -26,7 +28,7 @@ void SemaEventQueue::push(UINT64 newElement) {
     while (buffer[tail] != EMPTY_SLOT) {
         // Producer sees no spaces, synchronize with consumer
         // counter for how often you spin 2x (potential rare inefficency)
-        if (++x>50) {
+        if (++x>100) {
             ReleaseSemaphore(queueEmpty, 1, nullptr);
             WaitForSingleObject(queueFull, 1);
             x = 0;
@@ -42,7 +44,7 @@ UINT64 SemaEventQueue::pop() {
     int x = 0;
     while ((currentElement = (buffer)[head]) == EMPTY_SLOT) {
         // Consumer sees no elements, synchronize with producer
-        if (++x > 50) {
+        if (++x > 100) {
             ReleaseSemaphore(queueFull, 1, nullptr);
             WaitForSingleObject(queueEmpty, 1);
             x = 0;
@@ -83,7 +85,15 @@ void SemaEventQueue::prodSync() {
     WaitForSingleObject(queueFull, 1);
 }
 
+void SemaEventQueue::freeProd() {
+    ReleaseSemaphore(queueFull, 1, nullptr);
+}
+
 void SemaEventQueue::consSync() {
     ReleaseSemaphore(queueFull, 1, nullptr);
     WaitForSingleObject(queueEmpty, 1);
+}
+
+void SemaEventQueue::freeCons() {
+    ReleaseSemaphore(queueEmpty, 1, nullptr);
 }

@@ -36,5 +36,7 @@ public:
     bool tryPush(UINT64);
     bool tryPop(UINT64 &output);
     void prodSync();
+    void freeProd();
     void consSync();
+    void freeCons();
 };

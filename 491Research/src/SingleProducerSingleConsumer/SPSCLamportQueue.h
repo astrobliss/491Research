@@ -8,11 +8,11 @@
 class SPSCLamportQueue {
 private:
     HANDLE queueFull, queueEmpty;
+    const int MAX_RETRIES = 50;
     UINT64* buffer;
     int head;
-    char spacer1[128];
     int tail;
-    char spacer2[128];
+    char spacer3[128];
     int bufferSizeMask;
     int capacity;
 public:

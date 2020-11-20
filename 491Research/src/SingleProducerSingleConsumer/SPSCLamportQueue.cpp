@@ -21,7 +21,15 @@ SPSCLamportQueue::~SPSCLamportQueue() {
 void SPSCLamportQueue::push(UINT64 newElement) {
     int nextSlot = ((tail + 1) & bufferSizeMask);
     while (nextSlot == head) {
-        // Queue is full, wait for an element to be popped
+        // the queue appears full, try a few times to see if it empties
+        for (int retries = 0; retries < MAX_RETRIES; ++retries) {
+            if (nextSlot != head) {
+                buffer[tail] = newElement;
+                tail = nextSlot;
+                return;
+            }
+        }
+        // synchronize with the other thread operating on this queue
         ReleaseSemaphore(queueEmpty, 1, nullptr);
         WaitForSingleObject(queueFull, 1);
     }
@@ -32,6 +40,13 @@ void SPSCLamportQueue::push(UINT64 newElement) {
 UINT64 SPSCLamportQueue::pop() {
     while (head == tail) {
         // Queue is empty, wait for an element to be pushed
+        for (int retries = 0; retries < MAX_RETRIES; ++retries) {
+            if (head != tail) {
+                UINT64 currentElement = buffer[head];
+                head = ((head + 1) & bufferSizeMask);
+                return currentElement;
+            }
+        }
         ReleaseSemaphore(queueFull, 1, nullptr);
         WaitForSingleObject(queueEmpty, 1);
     }

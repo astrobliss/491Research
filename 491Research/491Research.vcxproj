@@ -155,6 +155,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\MultiProducerMultiConsumer\SCListQueue.cpp" />
+    <ClCompile Include="src\MultiProducerMultiConsumer\GlobalSCQueue.cpp" />
     <ClCompile Include="src\ConcurrentLookupSet.cpp" />
     <ClCompile Include="src\MultiProducerMultiConsumer\SCQueue.cpp" />
     <ClCompile Include="src\SingleProducerSingleConsumer\SemaEventQueue.cpp" />
@@ -181,6 +183,8 @@
     <ClCompile Include="src\SingleProducerSingleConsumer\SynchronizationVariableConstructQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\MultiProducerMultiConsumer\SCListQueue.h" />
+    <ClInclude Include="src\MultiProducerMultiConsumer\GlobalSCQueue.h" />
     <ClInclude Include="src\ConcurrentLookupSet.h" />
     <ClInclude Include="src\MultiProducerMultiConsumer\SCQueue.h" />
     <ClInclude Include="src\SingleProducerSingleConsumer\SemaEventQueue.h" />

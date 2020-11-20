@@ -72,6 +72,12 @@
     <ClCompile Include="src\ConcurrentLookupSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\MultiProducerMultiConsumer\GlobalSCQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MultiProducerMultiConsumer\SCListQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\pch.h">
@@ -126,6 +132,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ConcurrentLookupSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MultiProducerMultiConsumer\GlobalSCQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MultiProducerMultiConsumer\SCListQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

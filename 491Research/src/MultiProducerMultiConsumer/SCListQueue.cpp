@@ -1,10 +1,10 @@
 #include "src/pch.h"
-#include "SCQueue.h"
+#include "SCListQueue.h"
 #include "src/ConcurrentLookupSet.h"
 #include "src/SingleProducerSingleConsumer/SemaEventQueue.h"
 
 
-void SCQueue::initalizeProducer(SemaEventQueue* &prodCurQueue, ConcurrentLookupSet<SemaEventQueue> &prodExtraQueues, bool &producerInitalized) {
+void SCListQueue::initalizeProducer(SemaEventQueue*& prodCurQueue, ConcurrentLookupSet<SemaEventQueue>& prodExtraQueues, bool& producerInitalized) {
     EnterCriticalSection(&processInitilization);
     ++numProducers;
     producerQueueAssignment.push_back(std::make_pair(0, &prodExtraQueues));
@@ -21,7 +21,7 @@ void SCQueue::initalizeProducer(SemaEventQueue* &prodCurQueue, ConcurrentLookupS
     producerInitalized = true;
 }
 
-void SCQueue::initalizeConsumer(SemaEventQueue*& consCurQueue, ConcurrentLookupSet<SemaEventQueue> &consExtraQueues, bool &consumerInitalized) {
+void SCListQueue::initalizeConsumer(SemaEventQueue*& consCurQueue, ConcurrentLookupSet<SemaEventQueue>& consExtraQueues, bool& consumerInitalized) {
     EnterCriticalSection(&processInitilization);
     ++numConsumers;
     consumerQueueAssignment.push_back(std::make_pair(0, &consExtraQueues));
@@ -38,7 +38,7 @@ void SCQueue::initalizeConsumer(SemaEventQueue*& consCurQueue, ConcurrentLookupS
     consumerInitalized = true;
 }
 
-void SCQueue::balanceQueueAssignment(bool hasNewQueue, SemaEventQueue* newQueue) {
+void SCListQueue::balanceQueueAssignment(bool hasNewQueue, SemaEventQueue* newQueue) {
     std::vector<SemaEventQueue*> freedQueues;
     if (hasNewQueue) {
         freedQueues.push_back(newQueue);
@@ -108,17 +108,17 @@ void SCQueue::balanceQueueAssignment(bool hasNewQueue, SemaEventQueue* newQueue)
     }
 }
 
-SCQueue::SCQueue(int maxCapacity) {
+SCListQueue::SCListQueue(int maxCapacity) {
     InitializeCriticalSection(&processInitilization);
 }
 
-SCQueue::~SCQueue() {
+SCListQueue::~SCListQueue() {
     for (SemaEventQueue* queue : queues) {
         delete queue;
     }
 }
 
-void SCQueue::push(UINT64 newElement) {
+void SCListQueue::push(UINT64 newElement) {
     thread_local SemaEventQueue* curQueue;
     thread_local ConcurrentLookupSet<SemaEventQueue> extraQueues;
     thread_local bool producerInitalized = false;
@@ -141,30 +141,30 @@ void SCQueue::push(UINT64 newElement) {
     }
 }
 
-UINT64 SCQueue::pop() {
+UINT64 SCListQueue::pop() {
     thread_local SemaEventQueue* curQueue;
     thread_local ConcurrentLookupSet<SemaEventQueue> extraQueues;
     thread_local bool consumerInitalized = false;
     if (!consumerInitalized) [[unlikely]] {
         initalizeConsumer(curQueue, extraQueues, consumerInitalized);
     }
-    while (true) {
-        for (int i = 0; i < attemptsUntilSleep;) {
-            // try to push to the current queue
-            UINT64 output;
-            if (curQueue->tryPop(output)) {
-                return output;
+        while (true) {
+            for (int i = 0; i < attemptsUntilSleep;) {
+                // try to push to the current queue
+                UINT64 output;
+                if (curQueue->tryPop(output)) {
+                    return output;
+                }
+                curQueue->freeProd();
+                // try to use a different queue
+                if (!extraQueues.try_swap(curQueue) && (++i < attemptsUntilSleep)) {
+                    break;
+                }
             }
-            curQueue->freeProd();
-            // try to use a different queue
-            if (!extraQueues.try_swap(curQueue) && (++i < attemptsUntilSleep)) {
-                break;
-            }
+            curQueue->consSync();
         }
-        curQueue->consSync();
-    }
 }
 
-UINT64 SCQueue::getCapacity() {
-    return SIZE_PER_QUEUE*queues.size();
+UINT64 SCListQueue::getCapacity() {
+    return SIZE_PER_QUEUE * queues.size();
 }

@@ -14,13 +14,16 @@
 
 #include "MultiProducerMultiConsumer/MSFTConcurrentQueue.h"
 #include "MultiProducerMultiConsumer/SCQueue.h"
+#include "MultiProducerMultiConsumer/FacebookQueue.h"
+#include "MultiProducerMultiConsumer/MoodyCamelConcurrentQueue.h"
 
 #define METRICS_TIMEOUT_MILLISECONDS 2000
 #define REQUIRED_NUMBER_OF_CLI_INPUTS 2
-#define THRESHOLD_TO_SYNCHRONIZE_LOCAL_WORK (1 << 20)
+#define THRESHOLD_TO_SYNCHRONIZE_LOCAL_WORK (1 << 15)
+#define BATCH_WAIT_TIME_MS 30000
 #define QUEUE_IMPLIMENTATION SCQueue
 // QUEUE DEFINITION HERE
-static QUEUE_IMPLIMENTATION* queue = new QUEUE_IMPLIMENTATION(1<<15);
+static QUEUE_IMPLIMENTATION* queue = new QUEUE_IMPLIMENTATION(1<<13);
 static UINT64 totalElementsPushed = 0;
 static UINT64 totalElementsPopped = 0;
 static HANDLE testStartEvent;
@@ -67,12 +70,24 @@ DWORD __stdcall consumerRoutine(LPVOID unused) {
 * Prints Push and Pop throughput metrics during Producer Consumer Test
 * Wakes every METRICS_TIMEOUT_MILLISECONDS and publishes one metric
 */
-DWORD __stdcall printTestMetrics(LPVOID unused) {
+DWORD __stdcall printTestMetrics(LPVOID batchModePointer) {
 	WaitForSingleObject(testStartEvent, INFINITE);
 	UINT64 currentTotalElementsPushed, currentTotalElementsPopped, lastTotalElementsPushed, lastTotalElementsPopped;
 	lastTotalElementsPushed = lastTotalElementsPopped = 0;
 	clock_t startTime, previousTime, currentTime;
 	startTime = previousTime = clock();
+	bool batchMode = * static_cast<bool*>(batchModePointer);
+	if (batchMode) {
+		Sleep(BATCH_WAIT_TIME_MS);
+		UINT64 elementsPushed = InterlockedAdd64(&totalElementsPushed, 5);
+		UINT64 elementsPopped = InterlockedAdd64(&totalElementsPopped, 5);
+		currentTime = clock();
+		double totalTimeElapsed = double((currentTime - startTime) / CLOCKS_PER_SEC);
+		double averagePushRate = totalElementsPushed / totalTimeElapsed;
+		double averagePopRate = totalElementsPopped / totalTimeElapsed;
+		printf("%.2f/%.2f", averagePushRate / 1e6, averagePopRate / 1e6);
+		return 0;
+	}
 	while (true) {
 		Sleep(METRICS_TIMEOUT_MILLISECONDS); // Consider using SetTimer
         currentTime = clock();
@@ -84,10 +99,10 @@ DWORD __stdcall printTestMetrics(LPVOID unused) {
 		double instantPopRate = (currentTotalElementsPopped - lastTotalElementsPopped) / instantTimeElapsed;
 		double averagePushRate = currentTotalElementsPushed / totalTimeElapsed;
 		double averagePopRate = currentTotalElementsPopped / totalTimeElapsed;
-		printf("Push = %.2f (%.2f) M/s      Pop = %.2f (%.2f) M/s\n", averagePushRate /1e6, instantPushRate /1e6, averagePopRate / 1e6, instantPopRate / 1e6);
 		previousTime = currentTime;
 		lastTotalElementsPushed = currentTotalElementsPushed;
 		lastTotalElementsPopped = currentTotalElementsPopped;
+		printf("Push = %.2f (%.2f) M/s      Pop = %.2f (%.2f) M/s\n", averagePushRate /1e6, instantPushRate /1e6, averagePopRate / 1e6, instantPopRate / 1e6);
 	}
 }
 
@@ -104,16 +119,20 @@ int main(int argc, char** argv) {
 	printf("current resolution: %.2f\nminimum resolution: %.2f\n maximum resolution: %.2f\n", currentResolution/1e4, minimumResolution/1e4, maximumResolution/1e4);/**/
 	// Read Command Line Input: Errors have exit code 1
 	int numberOfProducers, numberOfConsumers;
+	bool batchMode;
 	int presentNumberOfCliInputs = argc - 1;
-	if (presentNumberOfCliInputs != REQUIRED_NUMBER_OF_CLI_INPUTS) {
-		printf("Incorrect number of CLI Inputs, expected %d, recieved %d\n", REQUIRED_NUMBER_OF_CLI_INPUTS, presentNumberOfCliInputs);
+	if (presentNumberOfCliInputs < REQUIRED_NUMBER_OF_CLI_INPUTS) {
+		printf("Incorrect number of CLI Inputs, required at least %d, recieved %d\n", REQUIRED_NUMBER_OF_CLI_INPUTS, presentNumberOfCliInputs);
 		exit(1);
 	}
 	numberOfProducers = strtol(argv[1], NULL, 10);
 	numberOfConsumers = strtol(argv[2], NULL, 10);
+	batchMode = (presentNumberOfCliInputs > REQUIRED_NUMBER_OF_CLI_INPUTS);
 
 	// Initalize Test Resources: Errors have exit code 2
-	printf("Initalizing Producer Consumer Test with %d Producers and %d Consumers using the %s Queue Implementation\n", numberOfProducers, numberOfConsumers, "queue name");
+	if (!batchMode) {
+		printf("Initalizing Producer Consumer Test with %d Producers and %d Consumers using the %s Queue Implementation\n", numberOfProducers, numberOfConsumers, "queue name");
+	}
 	HANDLE* producers = new HANDLE[numberOfProducers];
 	HANDLE* consumers = new HANDLE[numberOfConsumers];
 	HANDLE metricsThread;
@@ -146,7 +165,7 @@ int main(int argc, char** argv) {
 			exit(2);
 		}
 	}
-	metricsThread = CreateThread(nullptr, 0, printTestMetrics, nullptr, 0, nullptr);
+	metricsThread = CreateThread(nullptr, 0, printTestMetrics, &batchMode, 0, nullptr);
 	if (metricsThread == nullptr) {
 		printf("Error Creating Metrics Thread\n");
 		exit(2);
@@ -161,6 +180,11 @@ int main(int argc, char** argv) {
 	}
 
 	//Test is running kill process to stop
-	printf("Test is started...\n");
+	if (!batchMode) {
+		printf("Test is started...\n");
+	}
 	WaitForSingleObject(metricsThread, INFINITE);
+
+	// no more metrics
+	ExitProcess(0);
 }
