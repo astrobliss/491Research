@@ -24,16 +24,18 @@ SemaEventQueue::~SemaEventQueue() {
 
 void SemaEventQueue::push(UINT64 newElement) {
     int nextSlot = ((tail + 1) & tailBitMask);
-    int x = 0;
     while (buffer[tail] != EMPTY_SLOT) {
-        // Producer sees no spaces, synchronize with consumer
-        // counter for how often you spin 2x (potential rare inefficency)
-        if (++x>100) {
-            ReleaseSemaphore(queueEmpty, 1, nullptr);
-            WaitForSingleObject(queueFull, 1);
-            x = 0;
+        // the queue appears full, try a few times to see if it empties
+        for (int retries = 0; retries < MAX_RETRIES; ++retries) {
+            if (buffer[tail] == EMPTY_SLOT) {
+                buffer[tail] = newElement;
+                tail = nextSlot;
+                return;
+            }
         }
-        // try pushing 50 times
+        // synchronize with the other thread operating on this queue
+        ReleaseSemaphore(queueEmpty, 1, nullptr);
+        WaitForSingleObject(queueFull, 1);
     }
     buffer[tail] = newElement;
     tail = nextSlot;
@@ -41,14 +43,17 @@ void SemaEventQueue::push(UINT64 newElement) {
 
 UINT64 SemaEventQueue::pop() {
     UINT64 currentElement;
-    int x = 0;
     while ((currentElement = (buffer)[head]) == EMPTY_SLOT) {
-        // Consumer sees no elements, synchronize with producer
-        if (++x > 100) {
-            ReleaseSemaphore(queueFull, 1, nullptr);
-            WaitForSingleObject(queueEmpty, 1);
-            x = 0;
+        // Queue is empty, wait for an element to be pushed
+        for (int retries = 0; retries < MAX_RETRIES; ++retries) {
+            if ((currentElement = (buffer)[head]) != EMPTY_SLOT) {
+                buffer[head] = EMPTY_SLOT;
+                head = ((head + 1) & headBitMask);
+                return currentElement;
+            }
         }
+        ReleaseSemaphore(queueFull, 1, nullptr);
+        WaitForSingleObject(queueEmpty, 1);
     }
     buffer[head] = EMPTY_SLOT;
     head = ((head + 1) & headBitMask);

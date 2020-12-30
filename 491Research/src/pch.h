@@ -7,7 +7,6 @@
 #ifndef PCH_H
 #define PCH_H
 
-
 #include <cstdio>		/* Used for rich efficent printout */
 #include <math.h>		/* Used for basic math functions */
 #include <stdexcept>    /* Used for basic exception types */

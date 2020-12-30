@@ -10,6 +10,7 @@
 */
 class SemaEventQueue {
 private:
+    int MAX_RETRIES = 50;
     static const UINT64 EMPTY_SLOT = -1;
     UINT64* buffer;
     HANDLE queueFull, queueEmpty;

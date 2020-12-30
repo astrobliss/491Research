@@ -12,7 +12,7 @@ private:
     UINT64* buffer;
     int head;
     int tail;
-    char spacer3[128];
+    char spacer[128];
     int bufferSizeMask;
     int capacity;
 public:

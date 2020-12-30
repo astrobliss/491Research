@@ -181,6 +181,7 @@
     </ClCompile>
     <ClCompile Include="src\Utilities\QueueUtilities.cpp" />
     <ClCompile Include="src\SingleProducerSingleConsumer\SynchronizationVariableConstructQueue.cpp" />
+    <ClCompile Include="src\MultiProducerMultiConsumer\SWQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\MultiProducerMultiConsumer\SCListQueue.h" />
@@ -203,6 +204,7 @@
     <ClInclude Include="src\ProducerConsumerQueue.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\SingleProducerSingleConsumer\SynchronizationVariableConstructQueue.h" />
+    <ClInclude Include="src\MultiProducerMultiConsumer\SWQueue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

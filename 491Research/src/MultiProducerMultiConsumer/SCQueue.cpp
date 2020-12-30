@@ -128,8 +128,10 @@ void SCQueue::push(UINT64 newElement) {
     while (true) {
         for (int i = 0; i < attemptsUntilSleep;) {
             // try to push to the current queue
-            if (curQueue->tryPush(newElement)) {
-                return;
+            register int attempts = 50;
+            while (--attempts) {
+                if (curQueue->tryPush(newElement))
+                    return;
             }
             curQueue->freeCons();
             // try to use a different queue
@@ -152,8 +154,11 @@ UINT64 SCQueue::pop() {
         for (int i = 0; i < attemptsUntilSleep;) {
             // try to push to the current queue
             UINT64 output;
-            if (curQueue->tryPop(output)) {
-                return output;
+            register int attempts = 50;
+            while (--attempts) {
+                if (curQueue->tryPop(output)) {
+                    return output;
+                }
             }
             curQueue->freeProd();
             // try to use a different queue
