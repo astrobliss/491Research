@@ -22,7 +22,7 @@
 #define REQUIRED_NUMBER_OF_CLI_INPUTS 2
 #define THRESHOLD_TO_SYNCHRONIZE_LOCAL_WORK (1 << 15)
 #define BATCH_WAIT_TIME_MS 10000
-#define QUEUE_IMPLIMENTATION SemaEventQueue //SWQueueOneToOne, SPSCLamportQueue, SemaEventQueue
+#define QUEUE_IMPLIMENTATION SPSCLamportCacheOptimizedQueue //SWQueueOneToOne, SPSCLamportQueue, SemaEventQueue
 // QUEUE DEFINITION HERE
 static QUEUE_IMPLIMENTATION* queue = new QUEUE_IMPLIMENTATION(1 << 12);
 static UINT64 totalElementsPushed = 0;
@@ -35,7 +35,7 @@ static HANDLE testStartEvent;
 */
 DWORD __stdcall producerRoutine(LPVOID unused) {
 	WaitForSingleObject(testStartEvent, INFINITE);
-	UINT64 localSent = 0;
+	register UINT64 localSent = 0;
 	while (true) {
 		queue->push(localSent);
 		++localSent;
@@ -52,10 +52,10 @@ DWORD __stdcall producerRoutine(LPVOID unused) {
 */
 DWORD __stdcall consumerRoutine(LPVOID unused) {
 	WaitForSingleObject(testStartEvent, INFINITE);
-	UINT64 localReceived = 0;
-	UINT64 currentRecieved;
+	register UINT64 localReceived = 0;
+	register UINT64 currentRecieved;
 	while (true) {
-		currentRecieved = (UINT64) queue->pop();
+		currentRecieved = queue->pop();
 		/*if (localReceived != currentRecieved) {
 			printf("Expected %lld, Recieved %lld\n", localReceived, currentRecieved);
 		}/**/
@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
 	}
 	for (int i = 0; i < numberOfProducers; i++) {
 		producers[i] = CreateThread(nullptr, 0, producerRoutine, nullptr, 0, nullptr);
-		SetThreadAffinityMask(producers[i], 1);
+		//SetThreadAffinityMask(producers[i], 1);
 		if (producers[i] == nullptr) {
 			printf("Error Creating the %dth Producer Thread\n", i);
 			exit(2);
@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
 	}
 	for (int i = 0; i < numberOfConsumers; i++) {
 		consumers[i] = CreateThread(nullptr, 0, consumerRoutine, nullptr, 0, nullptr);
-		SetThreadAffinityMask(consumers[i], 2);
+		//SetThreadAffinityMask(consumers[i], 2);
 		if (consumers[i] == nullptr) {
 			printf("Error Creating the %dth Consumer Thread\n", i);
 			exit(2);
